@@ -35,6 +35,7 @@ export function useCanvasAnimation(draw: DrawFn, duration: number) {
   const replay = useCallback(() => {
     cancelAnimationFrame(s.current.raf);
     s.current.started = true;
+    s.current.visible = true;
     s.current.start = performance.now();
     s.current.raf = requestAnimationFrame(frame);
   }, [frame]);
@@ -50,7 +51,7 @@ export function useCanvasAnimation(draw: DrawFn, duration: number) {
     };
     sizeCanvas();
 
-    // On resize: keep the current progress, just redraw (do not restart).
+    // On resize: redraw current state
     const ro = new ResizeObserver(() => {
       sizeCanvas();
       if (s.current.started) {
@@ -60,20 +61,26 @@ export function useCanvasAnimation(draw: DrawFn, duration: number) {
     });
     ro.observe(c);
 
+    // Check if element is already in viewport on mount (e.g. if loaded scrolled down)
+    const rect = c.getBoundingClientRect();
+    const inView = rect.top < window.innerHeight && rect.bottom > 0;
+    if (inView) {
+      s.current.visible = true;
+      replay();
+    }
+
+    // Trigger animation whenever scrolled into view
     const io = new IntersectionObserver(
       ([entry]) => {
-        s.current.visible = entry.isIntersecting;
-        if (entry.isIntersecting) {
-          if (!s.current.started) replay();
-          else {
-            cancelAnimationFrame(s.current.raf);
-            s.current.raf = requestAnimationFrame(frame); // resume or redraw
-          }
+        const isVisible = entry.isIntersecting;
+        s.current.visible = isVisible;
+        if (isVisible) {
+          replay();
         } else {
-          cancelAnimationFrame(s.current.raf); // stop rAF while off-screen
+          cancelAnimationFrame(s.current.raf);
         }
       },
-      { threshold: 0.4 }
+      { threshold: 0.15 }
     );
     io.observe(c);
 

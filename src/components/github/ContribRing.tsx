@@ -113,9 +113,14 @@ export default function ContribRing({ year }: ContribRingProps) {
   );
 
   const { canvasRef, replay } = useCanvasAnimation(draw, DURATION);
+  const isFirstMount = React.useRef(true);
 
   // When selected year changes, restart the animation
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     setTooltip(null);
     replay();
   }, [displayYear, replay]);

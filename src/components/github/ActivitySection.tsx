@@ -84,7 +84,7 @@ export default function ActivitySection() {
       <div className="relative w-full rounded-2xl border border-border/60 bg-gradient-to-b from-card/50 to-card/20 backdrop-blur-md p-4 sm:p-8 shadow-xl overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
         {/* Left / Center: Ring Visualisation */}
         <div className="w-full flex-1 flex items-center justify-center">
-          <ContribRing key={selectedYear} year={selectedYear} />
+          <ContribRing year={selectedYear} />
         </div>
 
         {/* Right side: Year Timeline */}
@@ -96,8 +96,11 @@ export default function ActivitySection() {
 
           {/* Timeline Nodes */}
           <div className="relative flex md:flex-col gap-3 sm:gap-4 w-full justify-center md:justify-start overflow-x-auto pb-2 md:pb-0">
-            {/* Connecting Vertical Track on Desktop */}
-            <div className="hidden md:block absolute left-3.5 top-3 bottom-3 w-[2px] bg-border/60 -z-0" />
+            {/* Connecting Vertical Track on Desktop (passes through vertical center of the circle) */}
+            <div className="hidden md:block absolute left-[25px] top-[22px] bottom-[22px] w-[2px] bg-gradient-to-b from-emerald-500/50 via-border/80 to-border/40 z-0 pointer-events-none" />
+
+            {/* Connecting Horizontal Track on Mobile */}
+            <div className="md:hidden absolute top-[22px] left-6 right-6 h-[2px] bg-border/60 z-0 pointer-events-none" />
 
             {availableYears.map((yr) => {
               const isSelected = selectedYear === yr;
@@ -116,7 +119,7 @@ export default function ActivitySection() {
                 >
                   {/* Timeline Dot Indicator */}
                   <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-mono font-bold shrink-0 transition-all ${
+                    className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-mono font-bold shrink-0 transition-all z-10 ${
                       isSelected
                         ? "bg-emerald-500 text-black shadow-lg shadow-emerald-500/30 scale-105"
                         : "bg-background border border-border text-muted-foreground group-hover:border-emerald-400 group-hover:text-foreground"
