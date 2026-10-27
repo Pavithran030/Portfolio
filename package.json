@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "fetch:github": "node ./scripts/fetch-github.mjs",
     "seo:generate": "node ./scripts/generate-sitemap.mjs",
     "prebuild": "npm run seo:generate",
     "build": "vite build",

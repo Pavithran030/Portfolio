@@ -59,6 +59,7 @@ import { SEO } from "@/components/SEO";
 import { MotionSection, MotionItem, StaggerContainer } from "@/components/MotionSection";
 import { staggerChildVariants } from "@/lib/motion-variants";
 import { ScrollTimeline } from "@/components/ScrollTimeline";
+import ActivitySection from "@/components/github/ActivitySection";
 import { THEMES } from "@/types/theme";
 
 // External scripts loaded via script tags
@@ -86,6 +87,7 @@ const SECTION_BG_COLORS = [
   { section: "#skills", color: "hsl(var(--bg-void))" },
   { section: "#projects", color: "hsl(var(--bg-surface))" },
   { section: "#experience", color: "hsl(var(--bg-void))" },
+  { section: "#activity", color: "hsl(var(--bg-void))" },
   { section: ".achievements-section", color: "hsl(var(--bg-deep))" },
   { section: "#education", color: "hsl(var(--bg-void))" },
   { section: "#contact", color: "hsl(var(--bg-surface))" },
@@ -1647,6 +1649,15 @@ export default function Index() {
                   : ("completed" as const),
             }))}
           />
+        </MotionSection>
+
+        {/* ===== ACTIVITY ===== */}
+        <MotionSection id="activity" className="activity-section">
+          <span className="section-label">// CODE & OPEN SOURCE CONTRIBUTIONS</span>
+          <h2 className="section-heading">
+            <span className="accent">Activity</span>
+          </h2>
+          <ActivitySection />
         </MotionSection>
 
         {/* ===== ACHIEVEMENTS & CERTIFICATIONS ===== */}

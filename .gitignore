@@ -46,3 +46,4 @@ bun.lockb
 
 # public/certificates/pdf/*.pdf
 .env*
+GITHUB_GRAPH_SPEC.md
