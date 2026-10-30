@@ -793,29 +793,14 @@ export default function Index() {
   useEffect(() => {
     const isOverlayOpen = mobileMenuOpen || !!popupProject || !!popupCertificate;
     if (isOverlayOpen) {
-      const y = window.scrollY;
-      scrollLockYRef.current = y;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${y}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
       lenisRef.current?.stop();
     } else {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      document.body.style.width = "";
-      window.scrollTo(0, scrollLockYRef.current);
+      document.body.style.overflow = "";
       lenisRef.current?.start();
     }
     return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      document.body.style.width = "";
+      document.body.style.overflow = "";
     };
   }, [mobileMenuOpen, popupProject, popupCertificate]);
 
@@ -885,25 +870,33 @@ export default function Index() {
   }, []);
 
   const scrollToSection = useCallback((id: string, smooth = true) => {
+    setMobileMenuOpen(false);
+
     const section = document.getElementById(id);
     if (!section) return;
+
     setActiveNav(id);
     const offset = id === "home" ? 0 : NAVBAR_HEIGHT + 12;
-    const top = Math.max(section.getBoundingClientRect().top + window.scrollY - offset, 0);
+
     window.history.replaceState(null, "", id === "home" ? window.location.pathname : `#${id}`);
+
     if (lenisRef.current && smooth) {
-      lenisRef.current.scrollTo(top, { duration: 1.2 });
+      if (id === "home") {
+        lenisRef.current.scrollTo(0, { duration: 1.2 });
+      } else {
+        lenisRef.current.scrollTo(section, { offset: -offset, duration: 1.2 });
+      }
     } else {
+      const top = id === "home" ? 0 : Math.max(section.getBoundingClientRect().top + window.scrollY - offset, 0);
       window.scrollTo({ top, behavior: smooth ? "smooth" : "auto" });
     }
-    setMobileMenuOpen(false);
   }, []);
 
   // Hash Navigation Handler on first load
   useEffect(() => {
     if (!loaded || !revealGone) return;
     const hash = window.location.hash.replace("#", "");
-    if (hash && NAV_LINKS.includes(hash)) {
+    if (hash && (NAV_LINKS.includes(hash) || hash === "activity")) {
       setTimeout(() => {
         scrollToSection(hash, true);
       }, 200);
@@ -1130,8 +1123,13 @@ export default function Index() {
       {loaded && revealGone && navScrolled && <ScrollProgressBar />}
 
       {/* MOBILE MENU DRAWER */}
-      <div className={`mobile-menu ${mobileMenuOpen ? "open" : ""}`} onClick={() => setMobileMenuOpen(false)}>
-        <div className="mobile-menu-inner" onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`mobile-menu-backdrop ${mobileMenuOpen ? "open" : ""}`}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+      <div className={`mobile-menu ${mobileMenuOpen ? "open" : ""}`}>
+        <div className="mobile-menu-inner">
           <button
             type="button"
             className="mobile-menu-close"

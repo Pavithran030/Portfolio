@@ -95,12 +95,9 @@ export default function ActivitySection() {
           </div>
 
           {/* Timeline Nodes */}
-          <div className="relative flex md:flex-col gap-3 sm:gap-4 w-full justify-center md:justify-start overflow-x-auto pb-2 md:pb-0">
-            {/* Connecting Vertical Track on Desktop (passes through vertical center of the circle) */}
-            <div className="hidden md:block absolute left-[25px] top-[22px] bottom-[22px] w-[2px] bg-gradient-to-b from-emerald-500/50 via-border/80 to-border/40 z-0 pointer-events-none" />
-
-            {/* Connecting Horizontal Track on Mobile */}
-            <div className="md:hidden absolute top-[22px] left-6 right-6 h-[2px] bg-border/60 z-0 pointer-events-none" />
+          <div className="relative flex flex-col gap-2.5 sm:gap-3 w-full max-w-xs md:max-w-none">
+            {/* Connecting Vertical Track passing through vertical center of the circle on all screen sizes */}
+            <div className="absolute left-[25px] top-[22px] bottom-[22px] w-[2px] bg-gradient-to-b from-emerald-500/60 via-border/80 to-border/40 z-0 pointer-events-none" />
 
             {availableYears.map((yr) => {
               const isSelected = selectedYear === yr;
@@ -111,7 +108,7 @@ export default function ActivitySection() {
                   key={yr}
                   type="button"
                   onClick={() => setSelectedYear(yr)}
-                  className={`group relative z-10 flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all cursor-pointer w-full ${
+                  className={`group relative z-10 flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all cursor-pointer w-full ${
                     isSelected
                       ? "bg-emerald-500/15 border border-emerald-500/40 shadow-sm"
                       : "hover:bg-muted/30 border border-transparent"
@@ -139,7 +136,7 @@ export default function ActivitySection() {
                     >
                       {yr}
                     </span>
-                    <span className="text-[10px] font-mono text-muted-foreground">
+                    <span className="text-[11px] font-mono text-muted-foreground">
                       {yrTotal} contributions
                     </span>
                   </div>
