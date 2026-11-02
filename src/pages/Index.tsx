@@ -61,6 +61,7 @@ import { staggerChildVariants } from "@/lib/motion-variants";
 import { ScrollTimeline } from "@/components/ScrollTimeline";
 import ActivitySection from "@/components/github/ActivitySection";
 import { THEMES } from "@/types/theme";
+import posthog, { isPostHogConfigured } from "@/lib/posthog";
 
 // External scripts loaded via script tags
 declare const gsap: {
@@ -539,13 +540,33 @@ export default function Index() {
     document.documentElement.setAttribute("data-theme", "cyber-emerald");
   }, []);
 
+  const captureEvent = useCallback((event: string, properties?: Record<string, string>) => {
+    if (isPostHogConfigured) {
+      posthog.capture(event, properties);
+    }
+  }, []);
+
+  const openProjectDetails = useCallback((project: (typeof PROJECTS)[number]) => {
+    captureEvent("project_details_viewed", {
+      project_id: project.id,
+      project_category: project.category,
+    });
+    setPopupProject(project);
+  }, [captureEvent]);
+
+  const openCertificateDetails = useCallback((certificate: (typeof ACHIEVEMENT_CARDS)[number]) => {
+    captureEvent("certificate_details_viewed", { certificate_issuer: certificate.issuer });
+    setPopupCertificate(certificate);
+  }, [captureEvent]);
+
   // Copy Email Handler
   const handleCopyEmail = useCallback(() => {
     navigator.clipboard.writeText("techpavithran18@gmail.com");
+    captureEvent("email_copied");
     setCopiedEmail(true);
     toast.success("Email copied: techpavithran18@gmail.com");
     setTimeout(() => setCopiedEmail(false), 2500);
-  }, []);
+  }, [captureEvent]);
 
   // ===== HERO BACKGROUND — VANTA DOTS =====
   useEffect(() => {
@@ -986,6 +1007,10 @@ export default function Index() {
     const message = formData.get("message") as string;
 
     try {
+      if (isPostHogConfigured) {
+        posthog.logger.info("contact_form_delivery_requested", { channel: "portfolio" });
+      }
+
       const response = await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -997,11 +1022,18 @@ export default function Index() {
         throw new Error(result.error || "Failed to send the email.");
       }
 
+      captureEvent("contact_form_submitted");
+      if (isPostHogConfigured) {
+        posthog.logger.info("contact_form_delivery_succeeded", { channel: "portfolio" });
+      }
       setFormSent(true);
       form.reset();
       toast.success("Message sent successfully! I will get back to you soon.");
       setTimeout(() => setFormSent(false), 5000);
     } catch (err: unknown) {
+      if (isPostHogConfigured) {
+        posthog.logger.error("contact_form_delivery_failed", { channel: "portfolio" });
+      }
       console.error("Failed to send email:", err);
       const errorMsg = err instanceof Error ? err.message : "Failed to send message. Please try again.";
       setSubmitError(errorMsg);
@@ -1201,7 +1233,13 @@ export default function Index() {
               </div>
               <div className="popup-links">
                 {popupProject.demo ? (
-                  <a href={popupProject.demo} target="_blank" rel="noopener noreferrer" className="btn-primary">
+                  <a
+                    href={popupProject.demo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary"
+                    onClick={() => captureEvent("project_demo_opened", { project_id: popupProject.id, project_category: popupProject.category })}
+                  >
                     <ExternalLink size={14} className="mr-1.5" /> LIVE DEMO
                   </a>
                 ) : (
@@ -1211,7 +1249,13 @@ export default function Index() {
                 )}
 
                 {popupProject.source ? (
-                  <a href={popupProject.source} target="_blank" rel="noopener noreferrer" className="btn-secondary">
+                  <a
+                    href={popupProject.source}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-secondary"
+                    onClick={() => captureEvent("project_source_opened", { project_id: popupProject.id, project_category: popupProject.category })}
+                  >
                     <Github size={14} className="mr-1.5" /> SOURCE CODE
                   </a>
                 ) : (
@@ -1316,7 +1360,12 @@ export default function Index() {
                 </svg>
               </a>
 
-              <a href="/Pavithran_G.pdf" className="hero-btn hero-btn--ghost" download>
+              <a
+                href="/Pavithran_G.pdf"
+                className="hero-btn hero-btn--ghost"
+                download
+                onClick={() => captureEvent("resume_downloaded")}
+              >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
                 </svg>
@@ -1584,7 +1633,7 @@ export default function Index() {
                     whileTap={{ scale: 0.985 }}
                   >
                     <div className="project-card-glow" />
-                    <div className="project-visual" onClick={() => setPopupProject(p)}>
+                    <div className="project-visual" onClick={() => openProjectDetails(p)}>
                       <img src={p.image} alt={p.title} className="project-image" loading="lazy" />
                       <div className="project-image-overlay">
                         <i className="fa-solid fa-expand"></i>
@@ -1603,16 +1652,28 @@ export default function Index() {
                       </div>
                       <div className="project-links">
                         {p.demo && (
-                          <a href={p.demo} target="_blank" rel="noopener noreferrer" className="project-link-demo">
+                          <a
+                            href={p.demo}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="project-link-demo"
+                            onClick={() => captureEvent("project_demo_opened", { project_id: p.id, project_category: p.category })}
+                          >
                             <ExternalLink size={13} /> LIVE DEMO
                           </a>
                         )}
                         {p.source ? (
-                          <a href={p.source} target="_blank" rel="noopener noreferrer" className="project-link-code">
+                          <a
+                            href={p.source}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="project-link-code"
+                            onClick={() => captureEvent("project_source_opened", { project_id: p.id, project_category: p.category })}
+                          >
                             <Code2 size={13} /> SOURCE CODE
                           </a>
                         ) : (
-                          <button type="button" onClick={() => setPopupProject(p)} className="project-link-code">
+                          <button type="button" onClick={() => openProjectDetails(p)} className="project-link-code">
                             <ExternalLink size={13} /> DETAILS
                           </button>
                         )}
@@ -1684,13 +1745,13 @@ export default function Index() {
                 className="achievement-card"
                 key={i}
                 variants={staggerChildVariants}
-                onClick={() => setPopupCertificate(a)}
+                onClick={() => openCertificateDetails(a)}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    setPopupCertificate(a);
+                    openCertificateDetails(a);
                   }
                 }}
               >
@@ -1850,12 +1911,24 @@ export default function Index() {
               </div>
               <div className="project-links">
                 {popupProject.demo && (
-                  <a href={popupProject.demo} target="_blank" rel="noopener noreferrer" className="project-link-demo">
+                  <a
+                    href={popupProject.demo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="project-link-demo"
+                    onClick={() => captureEvent("project_demo_opened", { project_id: popupProject.id, project_category: popupProject.category })}
+                  >
                     <ExternalLink size={14} /> LIVE DEMO
                   </a>
                 )}
                 {popupProject.source && (
-                  <a href={popupProject.source} target="_blank" rel="noopener noreferrer" className="project-link-code">
+                  <a
+                    href={popupProject.source}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="project-link-code"
+                    onClick={() => captureEvent("project_source_opened", { project_id: popupProject.id, project_category: popupProject.category })}
+                  >
                     <Github size={14} /> SOURCE CODE
                   </a>
                 )}
